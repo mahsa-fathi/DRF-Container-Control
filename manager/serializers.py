@@ -14,4 +14,4 @@ class AppSerializer(serializers.ModelSerializer):
 class RunLogsSerializer(serializers.ModelSerializer):
     class Meta:
         model = RunLog
-        fields = ["id", "application", "envs", "command", "executed_at"]
+        fields = ["id", "application", "container_name", "envs", "command", "logs", "executed_at"]

@@ -76,22 +76,25 @@ def run_app(request, pk):
         return Response({"details": "Application not found"}, status=status.HTTP_404_NOT_FOUND)
 
     image_name = details.image
-    client_images = [image.tags[0] for image in client.images.list()]
 
-    # Check if the image exists, and pull it if it's not found
-    if image_name not in client_images:
-        try:
-            client.images.pull(repository=image_name)
-        except docker.errors.APIError as e:
-            return Response({"details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    try:
+        client.images.pull(repository=image_name)
+    except docker.errors.APIError as e:
+        return Response(data={"details": str(e)},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     log = RunLog(application=details)
     log.save()
 
     try:
         # Run the container
-        client.containers.run(image=image_name, environment=details.envs, command=details.command, detach=True)
+        container = client.containers.run(image=image_name,
+                                          environment=details.envs,
+                                          command=details.command,
+                                          detach=True)
         log.status = RunLog.Status.FINISHED
+        log.container_name = container.name
+        log.logs = container.logs().decode('utf-8')
         log.save()
 
         # Count the number of containers with the same image
@@ -102,6 +105,10 @@ def run_app(request, pk):
     except Exception as e:
         log.status = RunLog.Status.FAILED
         log.save()
-        return Response({"details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(data={"details": str(e)},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    return Response({"details": "Successful", "NumContainers": num_containers}, status=status.HTTP_200_OK)
+    return Response(data={"details": "Successful",
+                          "logs": container.logs().decode('utf-8'),
+                          "NumContainers": num_containers},
+                    status=status.HTTP_200_OK)

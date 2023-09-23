@@ -22,16 +22,19 @@ class RunLog(models.Model):
         FAILED = "FAI", _("Failed")
 
     application = models.ForeignKey(Application, on_delete=models.CASCADE)
+    container_name = models.CharField(max_length=100, null=True)
     envs = models.JSONField()
     command = models.TextField()
     status = models.CharField(max_length=3, choices=Status.choices, default=Status.RUNNING)
+    logs = models.TextField(null=True)
     executed_at = models.DateTimeField(default=timezone.now)
 
     def save(self, *args, **kwargs):
-        if not self.envs:
-            self.envs = self.application.envs
-        if not self.command:
-            self.command = self.application.command
+        if self.status == self.Status.RUNNING:
+            if not self.envs:
+                self.envs = self.application.envs
+            if not self.command:
+                self.command = self.application.command
         super().save(*args, **kwargs)
 
     def __str__(self):
