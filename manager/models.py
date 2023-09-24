@@ -8,11 +8,10 @@ class Application(models.Model):
     image = models.CharField(max_length=100)
     envs = models.JSONField()
     command = models.TextField()
-    no_containers = models.PositiveSmallIntegerField(default=0)
     created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
-        return f"{self.name}: {self.no_containers}"
+        return f"{self.name}"
 
 
 class RunLog(models.Model):

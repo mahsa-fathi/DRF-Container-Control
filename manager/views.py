@@ -3,6 +3,7 @@ from .serializers import AppSerializer, RunLogsSerializer
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
+from datetime import datetime
 import docker
 
 
@@ -14,14 +15,17 @@ class ApplicationApiView(generics.RetrieveUpdateDestroyAPIView):
         client = docker.from_env()
         containers = client.containers.list()
         instance = self.get_object()
+        image_name = instance.image
+        if ':' not in instance.image:
+            image_name = instance.image + ":latest"
 
         # Iterate through containers and stop those with the specified image name
         for container in containers:
-            if instance.name in container.image.tags:
+            if image_name in container.image.tags:
                 try:
-                    container.stop()
+                    container.remove(force=True)
                 except docker.errors.APIError as e:
-                    return Response(data={"details": f"Error stopping container {container.name}: {e}"},
+                    return Response(data={"details": f"Error removing container {container.name}: {e}"},
                                     status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         return super().delete(request, *args, **kwargs)
@@ -76,6 +80,8 @@ def run_app(request, pk):
         return Response({"details": "Application not found"}, status=status.HTTP_404_NOT_FOUND)
 
     image_name = details.image
+    if ':' not in details.image:
+        image_name = details.image + ":latest"
 
     try:
         client.images.pull(repository=image_name)
@@ -88,20 +94,19 @@ def run_app(request, pk):
 
     try:
         # Run the container
+        container_name = details.name + '_' + str(int(datetime.now().timestamp()))
         container = client.containers.run(image=image_name,
+                                          name=container_name,
                                           environment=details.envs,
                                           command=details.command,
                                           detach=True)
         log.status = RunLog.Status.FINISHED
-        log.container_name = container.name
+        log.container_name = container_name
         log.logs = container.logs().decode('utf-8')
         log.save()
 
         # Count the number of containers with the same image
         num_containers = len([c for c in client.containers.list() if c.image.tags[0] == image_name])
-
-        details.no_containers = num_containers
-        details.save()
     except Exception as e:
         log.status = RunLog.Status.FAILED
         log.save()
@@ -109,6 +114,7 @@ def run_app(request, pk):
                         status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     return Response(data={"details": "Successful",
+                          "containerName": container_name,
                           "logs": container.logs().decode('utf-8'),
-                          "NumContainers": num_containers},
+                          "numContainers": num_containers},
                     status=status.HTTP_200_OK)
