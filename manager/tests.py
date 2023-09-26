@@ -3,11 +3,11 @@ from rest_framework.test import APIClient
 from rest_framework import status
 
 
-class BuildApplicationAPITestCase(APITestCase):
+class CreateApplicationAPITestCase(APITestCase):
 
     def setUp(self) -> None:
         self.client = APIClient()
-        self.endpoint = "/apps/build/"
+        self.endpoint = "/apps/"
         self.payload = {
             "name": "test-image",
             "image": "test",
@@ -37,7 +37,7 @@ class ApplicationListAPITestCase(APITestCase):
     def setUp(self):
         self.client = APIClient()
         self.endpoint = "/apps/"
-        self.build_endpoint = "/apps/build/"
+        self.create_endpoint = "/apps/"
         self.payload = {
             "name": "test-image",
             "image": "test",
@@ -48,7 +48,7 @@ class ApplicationListAPITestCase(APITestCase):
     def test_get(self):
         n = 5
         for _ in range(n):
-            self.client.post(self.build_endpoint, data=self.payload, format='json')
+            self.client.post(self.create_endpoint, data=self.payload, format='json')
         response = self.client.get(self.endpoint)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['count'], n)
@@ -58,14 +58,14 @@ class ApplicationAPITestCase(APITestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.build_endpoint = "/apps/build/"
+        self.create_endpoint = "/apps/"
         self.payload = {
             "name": "test-image",
             "image": "test",
             "envs": {"key": "value"},
             "command": "some command"
         }
-        response = self.client.post(path=self.build_endpoint, data=self.payload, format='json')
+        response = self.client.post(path=self.create_endpoint, data=self.payload, format='json')
         self.id = response.data['id']
         self.endpoint = f"/apps/{self.id}/"
 
@@ -94,14 +94,14 @@ class RunLogsListAPITestCase(APITestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.build_endpoint = "/apps/build/"
+        self.create_endpoint = "/apps/"
         self.payload = {
             "name": "test-image",
             "image": "alpine",
             "envs": {},
             "command": "echo hello world"
         }
-        response = self.client.post(path=self.build_endpoint, data=self.payload, format='json')
+        response = self.client.post(path=self.create_endpoint, data=self.payload, format='json')
         self.id = response.data['id']
         self.client.get(f"/apps/{self.id}/run/")
         self.endpoint = f"/apps/{self.id}/history/"
@@ -116,14 +116,14 @@ class RunAPITestCase(APITestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.build_endpoint = "/apps/build/"
+        self.create_endpoint = "/apps/"
         self.payload = {
             "name": "test-image",
             "image": "alpine",
             "envs": {"network": "none"},
             "command": "echo hello world"
         }
-        response = self.client.post(path=self.build_endpoint, data=self.payload, format='json')
+        response = self.client.post(path=self.create_endpoint, data=self.payload, format='json')
         self.id = response.data['id']
         self.endpoint = f"/apps/{self.id}/run/"
 
