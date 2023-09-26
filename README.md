@@ -2,6 +2,7 @@
 
 [![Python 3.9](https://img.shields.io/badge/Python-3.9-green.svg)](https://shields.io/)
 [![Django](https://img.shields.io/badge/Django_Rest_Framework-3.14-355E3B)](https://shields.io/)
+![Build Status](https://github.com/mahsa-fathi/devops-capstone-project/actions/workflows/ci-build.yaml/badge.svg)
 
 This is a Django Rest Framework project. It has 5 endpoints to build applications and run containers for them.
 
@@ -12,8 +13,7 @@ our manager app in django. A sqlite database is used for the database.
 
 Manager app has five endpoints. The endpoints are listed below:
 
-- apps/: This endpoint lists all the applications using GET method
-- apps/build/: This endpoint can be used to insert a new application into database using POST method
+- apps/: This endpoint lists all the applications using GET method and creates a new application using POST method
 - apps/\<pk\>/: This endpoint gets, updates, and deletes the application in database using GET, PUT, and DELETE methods
 - apps/\<pk\>/run/: This endpoint runs a container for the application using GET method
 - apps/\<pk\>/history/: This endpoint lists the history of runs for a specific application using GET method
@@ -52,7 +52,7 @@ and Run Logs keeps the running history of every application.
 A request for building an application of hello world can be done as followed.
 
 ```shell
-curl --location --request POST 'http://localhost:8080/apps/build/' \
+curl --location --request POST 'http://localhost:8080/apps/' \
 --data '{
     "name": "hello-world",
     "image": "alpine",
