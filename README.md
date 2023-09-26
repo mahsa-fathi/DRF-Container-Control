@@ -2,7 +2,7 @@
 
 [![Python 3.9](https://img.shields.io/badge/Python-3.9-green.svg)](https://shields.io/)
 [![Django](https://img.shields.io/badge/Django_Rest_Framework-3.14-355E3B)](https://shields.io/)
-![Build Status](https://github.com/mahsa-fathi/devops-capstone-project/actions/workflows/ci-build.yaml/badge.svg)
+![Build Status](https://github.com/mahsa-fathi/DRF-Container-Control/actions/workflows/ci-build.yaml/badge.svg)
 
 This is a Django Rest Framework project. It has 5 endpoints to build applications and run containers for them.
 
